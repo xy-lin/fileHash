@@ -17,7 +17,7 @@ public:
 
     QString _fileName;
 
-    QString  _fullFilePath;   
+    QString _fullFilePath;   
 
 protected:
 
@@ -27,7 +27,7 @@ private:
 
 std::unordered_map<std::string, ImageFileInfo> imageStore;
 
-void listFiles(QDir directoryIn, QDir directoryOut)
+void listFiles(QDir directoryIn)
 {    
     QStringList filters;
     filters << "*.JPG" << "*.jpg" << "*.JPEG" << "*.jpeg" << "*.png" << "*.PNG" << "*.bmp" << "*.BMP";
@@ -39,9 +39,9 @@ void listFiles(QDir directoryIn, QDir directoryOut)
 
     foreach(QFileInfo finfo, list)
     {
-        if ( finfo.isFile())
+        if ( finfo.isFile() && finfo.size() >= 2048)
         {
-           QString fileName = finfo.fileName();
+            QString fileName = finfo.fileName();
             QString  fullPath = directoryIn.absolutePath();
 
             QString inName = fullPath + QString("/") + fileName;          
@@ -50,15 +50,14 @@ void listFiles(QDir directoryIn, QDir directoryOut)
             if (file.open(QIODevice::ReadOnly))
             {
                 QByteArray fileData = file.readAll();
-
                 QByteArray hashData = QCryptographicHash::hash(fileData, QCryptographicHash::Md5); 
-                
+
                 imageStore.insert(std::make_pair(hashData.toHex().toStdString(), ImageFileInfo(fileName, inName)));                 
             }
         }
         else if ( finfo.isDir())
         {         
-            listFiles(QDir(finfo.absoluteFilePath()), directoryOut);
+            listFiles(QDir(finfo.absoluteFilePath()));
         }
     }  
 }
@@ -66,16 +65,20 @@ void listFiles(QDir directoryIn, QDir directoryOut)
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    
+
     QDir dirIn(QObject::tr(argv[1]));
     QDir dirOut(QObject::tr(argv[2]));
 
-    listFiles(dirIn, dirOut);
-  
+    listFiles(dirIn);
+
     for(std::pair<std::string, ImageFileInfo> kv : imageStore)
     {
         QString dstName = dirOut.absolutePath() + QString("/") + kv.second._fileName;    
         
+        if (QFile::exists(dstName))
+        {
+
+        }
         QFile::copy(kv.second._fullFilePath, dstName);  
     }      
 
