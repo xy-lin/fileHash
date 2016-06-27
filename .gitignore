@@ -58,3 +58,4 @@ fileHash.vcxproj.user
 *.user
 *.obj
 *.suo
+*.db
