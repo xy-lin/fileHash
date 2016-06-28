@@ -56,7 +56,7 @@ void listFiles(QDir directoryIn)
 
                 imageStore.insert(std::make_pair(hashData.toHex().toStdString(), ImageFileInfo(fileName, inName)));     
 
-				++total;
+                ++total;
             }
         }
         else if ( finfo.isDir())
@@ -68,25 +68,25 @@ void listFiles(QDir directoryIn)
 
 QString getOverwriteFileName(QString path, QString inName)
 {
-	QString newName = path + QString("/") + inName;
-	
-	std::string test1 = inName.toStdString();
+    QString newName = path + QString("/") + inName;
 
-	std::string  test2 = path.toStdString();
+    std::string test1 = inName.toStdString();
 
-	std::string  test3 = newName.toStdString();
-	int i = 0;
+    std::string  test2 = path.toStdString();
 
-	while (QFile::exists(newName))
-	{
-		newName = path + QString("/") + std::to_string(i).c_str() + "_" + inName;
+    std::string  test3 = newName.toStdString();
+    int i = 0;
 
-		std::string test = newName.toStdString();
+    while (QFile::exists(newName))
+    {
+        newName = path + QString("/") + std::to_string(i).c_str() + "_" + inName;
 
-		++i;
-	}
+        std::string test = newName.toStdString();
 
-	return newName;
+        ++i;
+    }
+
+    return newName;
 }
 
 int main(int argc, char *argv[])
@@ -96,20 +96,19 @@ int main(int argc, char *argv[])
     QDir dirIn(QObject::tr(argv[1]));
     QDir dirOut(QObject::tr(argv[2]));
 
-	total = 0;
+    total = 0;
     listFiles(dirIn);
 
-	std::cout << "total files processed: " << total << std::endl;
+    std::cout << "total files processed: " << total << std::endl;
 
-	std::cout << "uniqure files: " << imageStore.size() << std::endl;
+    std::cout << "unique files: " << imageStore.size() << std::endl;
 
     for(std::pair<std::string, ImageFileInfo> kv : imageStore)
     {
-		QString dstName = getOverwriteFileName(dirOut.absolutePath(), kv.second._fileName);
+        QString dstName = getOverwriteFileName(dirOut.absolutePath(), kv.second._fileName);
 
         QFile::copy(kv.second._fullFilePath, dstName);  
     }      
 
     return 1;
 }
-
