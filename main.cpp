@@ -3,22 +3,27 @@
 #include <QCryptographicHash>
 #include <QDebug>
 #include <QDir>
+#include <QDateTime>
+#include <QImage>
+#include <QProcess>
+#include <QTextStream>
 
+#include <cstdlib>
 #include <iostream>
 #include <unordered_map>
 
 class ImageFileInfo
 {
 public:
-    ImageFileInfo(QString  fileName, QString  fullPath)
-        :_fileName(fileName), _fullFilePath(fullPath)
+    ImageFileInfo(QString fileName, QString directoryName, QString  fullPath, QString year  )
+        :_fileName(fileName), _directoryName(directoryName), _fullFilePath(fullPath), _year(year)
     {
     }
 
     QString _fileName;
-
+    QString _directoryName;
     QString _fullFilePath;   
-
+    QString _year; 
 protected:
 
 private:
@@ -29,22 +34,59 @@ std::unordered_map<std::string, ImageFileInfo> imageStore;
 
 long total;
 
+QString getCreatedYear( QString inName )
+{
+    QString metaFileName("C:/meta.txt");
+    QString exi("C:/Users/xilin/development/projects/fileHash/thirdParty/exiv2-0.25-win/exiv2.exe pr ");    
+    exi.append("\"").append(inName).append("\"").append(" > ").append(metaFileName);    
+    
+    std::system(exi.toStdString().c_str());
+
+    QString year;
+    QFile metaFile(metaFileName);
+
+    if ( metaFile.open(QIODevice::ReadOnly)) 
+    {
+        QString searchString("Image timestamp");
+        QTextStream inStream(&metaFile);
+        QString line;     
+
+        do 
+        {
+            line = inStream.readLine();
+
+            if (line.contains(searchString, Qt::CaseSensitive))             
+            {
+                 year = line.mid(18, 4);
+                 break;
+            }
+        } 
+        while (!line.isNull());       
+    }
+
+    metaFile.close();
+
+    return year;
+}
+
 void listFiles(QDir directoryIn)
 {    
-    QStringList filters;
-    filters << "*.JPG" << "*.jpg" << "*.JPEG" << "*.jpeg" << "*.png" << "*.PNG" << "*.bmp" << "*.BMP";
-
-    directoryIn.setNameFilters(filters);
-    directoryIn.setFilter(QDir::Files | QDir::AllDirs | QDir::NoDotAndDotDot);
+    QStringList filtersPic;
+    filtersPic << "*.JPG" << "*.jpg" << "*.JPEG" << "*.jpeg" << "*.png" << "*.PNG" << "*.bmp" << "*.BMP";
+  
+    directoryIn.setNameFilters(filtersPic);
+    directoryIn.setFilter(QDir::Files | QDir::AllDirs | QDir::NoDotAndDotDot | QDir::NoSymLinks);
 
     QFileInfoList list = directoryIn.entryInfoList();
 
-    foreach(QFileInfo finfo, list)
+    QString dirName = directoryIn.dirName();
+
+    foreach(QFileInfo fileInfo, list)
     {
-        if ( finfo.isFile() && finfo.size() >= 2048)
+        if ( fileInfo.isFile() && fileInfo.size() >= 2048)
         {
-            QString fileName = finfo.fileName();
-            QString  fullPath = directoryIn.absolutePath();
+            QString fileName = fileInfo.fileName();
+            QString fullPath = directoryIn.absolutePath();
 
             QString inName = fullPath + QString("/") + fileName;          
             QFile file(inName);
@@ -54,35 +96,32 @@ void listFiles(QDir directoryIn)
                 QByteArray fileData = file.readAll();
                 QByteArray hashData = QCryptographicHash::hash(fileData, QCryptographicHash::Md5); 
 
-                imageStore.insert(std::make_pair(hashData.toHex().toStdString(), ImageFileInfo(fileName, inName)));     
+                QString year;// = getCreatedYear(inName);
+
+                imageStore.insert(std::make_pair(hashData.toHex().toStdString(), ImageFileInfo(fileName, dirName, inName, year )));     
 
                 ++total;
             }
         }
-        else if ( finfo.isDir())
+        else if ( fileInfo.isDir())
         {         
-            listFiles(QDir(finfo.absoluteFilePath()));
+            listFiles(QDir(fileInfo.absoluteFilePath()));
         }
     }  
 }
 
-QString getOverwriteFileName(QString path, QString inName)
+QString getOverwriteFileName(QString path, QString year, QString dirName, QString inName)
 {
-    QString newName = path + QString("/") + inName;
-
-    std::string test1 = inName.toStdString();
-
-    std::string  test2 = path.toStdString();
-
-    std::string  test3 = newName.toStdString();
+    QString pathName = path /*+ QString("/") + year*/ + QString("/") + dirName + QString("/"); 
+    if (!QDir(pathName).exists())    
+        QDir().mkdir(pathName);
+    
+    QString newName = pathName + inName;
+    
     int i = 0;
-
     while (QFile::exists(newName))
     {
-        newName = path + QString("/") + std::to_string(i).c_str() + "_" + inName;
-
-        std::string test = newName.toStdString();
-
+        newName = pathName + std::to_string(i).c_str() + "_" + inName;
         ++i;
     }
 
@@ -100,12 +139,13 @@ int main(int argc, char *argv[])
     listFiles(dirIn);
 
     std::cout << "total files processed: " << total << std::endl;
-
     std::cout << "unique files: " << imageStore.size() << std::endl;
 
     for(std::pair<std::string, ImageFileInfo> kv : imageStore)
     {
-        QString dstName = getOverwriteFileName(dirOut.absolutePath(), kv.second._fileName);
+        std::cout << kv.second._fileName.toStdString() << std::endl;
+
+        QString dstName = getOverwriteFileName(dirOut.absolutePath(), kv.second._year, kv.second._directoryName, kv.second._fileName);
 
         QFile::copy(kv.second._fullFilePath, dstName);  
     }      
