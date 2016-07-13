@@ -4,7 +4,6 @@
 #include <QDebug>
 #include <QDir>
 #include <QDateTime>
-#include <QImage>
 #include <QProcess>
 #include <QTextStream>
 
@@ -138,8 +137,12 @@ int main(int argc, char *argv[])
     total = 0;
     listFiles(dirIn);
 
+	
     std::cout << "total files processed: " << total << std::endl;
     std::cout << "unique files: " << imageStore.size() << std::endl;
+
+	char* pc = new char[256];
+	std::cin >> pc;
 
     for(std::pair<std::string, ImageFileInfo> kv : imageStore)
     {
