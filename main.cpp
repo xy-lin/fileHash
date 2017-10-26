@@ -7,9 +7,12 @@
 #include <QProcess>
 #include <QTextStream>
 
+#include <iomanip>
 #include <cstdlib>
 #include <iostream>
 #include <unordered_map>
+
+#include"listVideos.h"
 
 class ImageFileInfo
 {
@@ -65,6 +68,8 @@ void listFiles(QDir directoryIn)
                 imageStore.insert(std::make_pair(hashData.toHex().toStdString(), ImageFileInfo(fileName, dirName, inName, year )));
 
                 ++total;
+
+				std::cout << "\r" << total << std::flush;
             }
         }
         else if ( fileInfo.isDir())
@@ -99,24 +104,56 @@ int main(int argc, char *argv[])
     QDir dirIn(QObject::tr(argv[1]));
     QDir dirOut(QObject::tr(argv[2]));
 
+    bool isFile = false;
+    if (argc == 3 && argv[2]=="f")
+        isFile = true;
+
     total = 0;
-    listFiles(dirIn);
-
 	
-    std::cout << "total files processed: " << total << std::endl;
-    std::cout << "unique files: " << imageStore.size() << std::endl;
+    if (!isFile)
+	{
+        QStringList allVideosFullPath, allVideosFileName;
 
-	char* pc = new char[256];
-	std::cin >> pc;
+        listVideoFiles(dirIn, allVideosFullPath, allVideosFileName);
 
-    for(std::pair<std::string, ImageFileInfo> kv : imageStore)
-    {
-        std::cout << kv.second._fileName.toStdString() << std::endl;
+		std::cout << std::endl;
+		std::cout << "total files processed: " << allVideosFullPath.size() << std::endl;
 
-        QString dstName = getOverwriteFileName(dirOut.absolutePath(), kv.second._year, kv.second._directoryName, kv.second._fileName);
+		char* pc = new char[256];
+		std::cin >> pc;
+		int i = 0;
+		for (; i < allVideosFullPath.size(); ++i)
+		{
+			QString fileName = allVideosFullPath.at(i);
 
-        QFile::copy(kv.second._fullFilePath, dstName);
-    }
+			std::cout << "\r" << std::setw(30) << fileName.toStdString() << std::flush;
+
+			QString dstName = getOverwriteFileName(dirOut.absolutePath(), "", "", allVideosFileName.at(i));
+			
+			QFile::copy(fileName, dstName);
+		}
+	}
+	else
+	{
+        listFiles(dirIn);
+
+		std::cout << std::endl;
+		std::cout << "total files processed: " << total << std::endl;
+		std::cout << "unique files: " << imageStore.size() << std::endl;
+
+		char* pc = new char[256];
+		std::cin >> pc;
+
+		for (std::pair<std::string, ImageFileInfo> kv : imageStore)
+		{
+			std::cout << "\r" << std::setw(30) << kv.second._fileName.toStdString() << std::flush;
+
+			QString dstName = getOverwriteFileName(dirOut.absolutePath(), kv.second._year, kv.second._directoryName, kv.second._fileName);
+
+			QFile::copy(kv.second._fullFilePath, dstName);
+		}
+	}
+	
 
     return 1;
 }

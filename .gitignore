@@ -219,3 +219,4 @@ pip-log.txt
 release/
 debug/
 thirdParty/exiv2-0.25-win/exiv2.exe
+fileHash.VC.db

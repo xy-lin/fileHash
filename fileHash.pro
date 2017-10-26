@@ -12,5 +12,6 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
+HEADERS += listVideos.h
 
-SOURCES += main.cpp
+SOURCES += main.cpp listVideos.cpp 

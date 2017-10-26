@@ -1,7 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fileHash", "fileHash.vcxproj", "{B2991700-35FB-36DF-8455-6F29CE6C1BF8}"
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fileHash", "fileHash.vcxproj", "{E47D30D2-AFC5-3300-9718-67756C8C5C55}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,10 +11,8 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B2991700-35FB-36DF-8455-6F29CE6C1BF8}.Debug|Win32.ActiveCfg = Debug|Win32
-		{B2991700-35FB-36DF-8455-6F29CE6C1BF8}.Debug|Win32.Build.0 = Debug|Win32
-		{B2991700-35FB-36DF-8455-6F29CE6C1BF8}.Release|Win32.ActiveCfg = Release|Win32
-		{B2991700-35FB-36DF-8455-6F29CE6C1BF8}.Release|Win32.Build.0 = Release|Win32
+		{E47D30D2-AFC5-3300-9718-67756C8C5C55}.Debug|Win32.ActiveCfg = Debug|x64
+		{E47D30D2-AFC5-3300-9718-67756C8C5C55}.Release|Win32.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
